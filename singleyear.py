@@ -1,12 +1,14 @@
 #coding:utf-8
 import json
-import PIL
-from pylab import *
-import requests
-import pytesseract
-import xlwt
 import time
 from io import BytesIO as Bytes2Data
+
+import PIL
+import pytesseract
+import requests
+import xlwt
+from pylab import *
+
 
 def listget(keyword):
     url='https://isisn.nsfc.gov.cn/egrantindex/cpt/ajaxload-complete?q='+keyword+'&arloncascade=none&limit=10&timestamp=1555572074679&locale=zh_CN&key=subject_code_index&cacheable=true&sqlParamVal='
@@ -17,7 +19,6 @@ def listget(keyword):
     rawlist=eval(r.text)
     items={}
     for i in rawlist:
-        #print(i)
         items[i['id']]=i['title']
     return items
 def getcheck():
@@ -26,17 +27,11 @@ def getcheck():
         import requests
         r = requests.get('https://isisn.nsfc.gov.cn/egrantindex/validatecode.jpg')   
         cookies = requests.utils.dict_from_cookiejar(r.cookies)
-        #print(cookies)
-        #with open('D:/2.jpg', 'wb') as f:
-        #        f.write(r.content)  #使用requests库下载验证码至本地图片文件
         return cookies,r.content
     def clear_dotnoise(img):
-        #img2=img
         w,h=img.shape
         for x in range (1,w-1):
             for y in range (1,h-1):
-                #if img[x,y]==255:
-                #   continue
                 count=img[x-1,y]+img[x+1,y]+img[x,y-1]+img[x,y+1]#255为白0为黑
                 count=count/255#计算周围白色像素数量
                 if img[x,y]==0:
@@ -49,18 +44,10 @@ def getcheck():
     cookie,img_bytes=request_download()
     img=array(PIL.Image.open(Bytes2Data(img_bytes)).convert('L'))#将目标地址文件以灰阶模式打开，并且转换为ndarray便于二值化处理
     img=select([img>180],[np.uint8(255)],default=0)#筛选灰度大于180的点（可调）置为255认为是白色，其他点认为是黑色0
-    #print(img)
     img=clear_dotnoise(img)#调用去噪
-    #figure()
-    #gray()
-    #contour(img,origin="image")
     result=pytesseract.image_to_string(img,lang='eng',config='-psm 8 digits')#调用ocr采用config=digits（在tesseract根目录修改）psm8为将图片认为是单行文本
-    #result=result.encode("GB18030")
     result=result.replace(' ','')#去掉可能的空格
     result=result.replace('S','5')#识别时发现被识别为S的全都是5，强制变换
-    #print(result)
-    #imshow(img)
-    #show()
     return result,cookie
 
 def i_am_the_spider(item_title,item_id,grant_code,which_year):
@@ -94,12 +81,12 @@ for grantcode in grantlist:#遍历级别
         endcode=1#保证可以进行第一次请求
         while endcode:#若结束码为1则为失败请求
             print('Sending request for',itemtitle,grantcode,whichyear)
-            #try:#捕获所有错误，可能导致其他问题无法抛出
-            textdata,endcode=i_am_the_spider(itemtitle,itemid,grantcode,whichyear)#调用spider，其中自动调用识别
-            #except:
-                #print('Due to timeout, Get a cup of coffee and take a nap zzz...')
-                #time.sleep(5)
-                #endcode=1
+            try:#捕获所有错误，可能导致其他问题无法抛出
+                textdata,endcode=i_am_the_spider(itemtitle,itemid,grantcode,whichyear)#调用spider，其中自动调用识别
+            except:
+                print('Due to timeout, Get a cup of coffee and take a nap zzz...')
+                time.sleep(5)
+                endcode=1
         textdata=textdata.replace('\n','').replace('\t<cell>','')
         templist=textdata.split('<row id="">')#若没有项目可能报错 待解决 已解决，读取records数量 洗过后形如初步分段，将其分为一个个项目块
         itemnumber=templist.pop(0)#取第一个包括
@@ -114,5 +101,3 @@ for grantcode in grantlist:#遍历级别
                 nowsheet.write(linecount,wordindex,label=objlist[wordindex])#按照规则填入
             linecount=linecount+1
         dataworkbook.save(xlsname)
-
-
