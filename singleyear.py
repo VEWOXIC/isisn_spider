@@ -1,5 +1,4 @@
 #coding:utf-8
-import json
 import time
 from io import BytesIO as Bytes2Data
 
@@ -7,7 +6,7 @@ import PIL
 import pytesseract
 import requests
 import xlwt
-from pylab import *
+import numpy as np
 
 
 def listget(keyword):
@@ -42,8 +41,8 @@ def getcheck():
                         img[x,y]=0#反之认为是白色噪点
         return img
     cookie,img_bytes=request_download()
-    img=array(PIL.Image.open(Bytes2Data(img_bytes)).convert('L'))#将目标地址文件以灰阶模式打开，并且转换为ndarray便于二值化处理
-    img=select([img>180],[np.uint8(255)],default=0)#筛选灰度大于180的点（可调）置为255认为是白色，其他点认为是黑色0
+    img=np.array(PIL.Image.open(Bytes2Data(img_bytes)).convert('L'))#将目标地址文件以灰阶模式打开，并且转换为ndarray便于二值化处理
+    img=np.select([img>180],[np.uint8(255)],default=0)#筛选灰度大于180的点（可调）置为255认为是白色，其他点认为是黑色0
     img=clear_dotnoise(img)#调用去噪
     result=pytesseract.image_to_string(img,lang='eng',config='-psm 8 digits')#调用ocr采用config=digits（在tesseract根目录修改）psm8为将图片认为是单行文本
     result=result.replace(' ','')#去掉可能的空格
