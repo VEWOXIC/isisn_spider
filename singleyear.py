@@ -69,7 +69,8 @@ def i_am_the_spider(item_title,item_id,grant_code,which_year):
 datadict=listget(input('Input the parent index:'))
 whichyear=input('Input a single year:')
 #grantlist=('218','220','222','339','429','432','433','649','579','632','635','51','52','2699','70','7161')
-grantlist=('218','220','222','339','429','432','433','649','579','632')
+#grantlist=('218','220','222','339','429','432','433','649','579','632')
+grantlist=input("Choose from 218,220,222,339,429,432,433,649,579,632,635,51,52,2699,70,7161 split with ',' ,eg: 218,220,222 :\n").split(',')
 
 dataworkbook=xlwt.Workbook(encoding='ascii')
 xlsname='D:/'+whichyear+'data.xls'
